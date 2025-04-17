@@ -17,5 +17,6 @@
  const cipher = encryptMsg({
    message: { some_serializable: {}, or_just: 'string' }, // Any serializable type (not a function!)
    pass: 'SECRET_PASS'
- }); // Return is a encrypted string
+ });
  ```
+ `cipher` is an object { data: string, v: string }, witch you can stringify and send as a body
