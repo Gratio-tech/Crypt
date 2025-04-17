@@ -1,6 +1,6 @@
 {
   "name": "@gratio/crypt",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "A very simple package for encrypting communications between server and client.",
   "main": "index.js",
   "types": "types.d.ts",
