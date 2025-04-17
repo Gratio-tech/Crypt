@@ -5,12 +5,25 @@ export type Serializable = SerializablePrimitive | SerializableArray | Serializa
 
 export type EncryptedData = { data: string; v: string };
 
-export type CryptoParams =  { message: Serializable; pass: string };
+export type CryptoParams = { message: Serializable; pass: string };
 
-export default interface Crypt {
-  serverCrypt: {
-    encryptMsg: (params: CryptoParams) => EncryptedData,
-    decryptMsg: (params: CryptoParams) => Serializable
-  },
-  frontCrypt: {}
+export interface ServerCrypt {
+  encryptMsg: (params: CryptoParams) => EncryptedData;
+  decryptMsg: (params: CryptoParams) => Serializable;
 }
+
+export interface FrontCrypt {
+  // Методы клиентской части
+}
+
+// Объявляем экспорт модуля
+declare const serverCrypt: ServerCrypt;
+declare const frontCrypt: FrontCrypt;
+
+export default {
+  serverCrypt,
+  frontCrypt,
+};
+
+// Чтобы использовать именованные методы
+export { serverCrypt, frontCrypt };

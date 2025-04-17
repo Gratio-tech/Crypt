@@ -8,5 +8,14 @@
  First of all install lib:
  `npm i @gratio/crypt`
 
- Import:
- ``
+ Import and usage:
+ ```TS
+ import { serverCrypt } from '@gratio/crypt';
+
+ const { encryptMsg } = serverCrypt;
+
+ const cipher = encryptMsg({
+   message: { some_serializable: {}, or_just: 'string' }, // Any serializable type (not a function!)
+   pass: 'SECRET_PASS'
+ }); // Return is a encrypted string
+ ```
