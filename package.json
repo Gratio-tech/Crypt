@@ -1,0 +1,20 @@
+{
+  "name": "@gratio/crypt",
+  "version": "1.0.0",
+  "description": "A very simple package for encrypting communications between server and client.",
+  "main": "index.js",
+  "types": "types.d.ts",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Gratio-tech/Crypt.git"
+  },
+  "author": "Gratio",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/Gratio-tech/Crypt/issues"
+  },
+  "homepage": "https://github.com/Gratio-tech/Crypt#readme"
+}
