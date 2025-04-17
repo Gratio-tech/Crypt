@@ -1,7 +1,4 @@
-import * as serverside from './lib/server.js';
-import * as clientside from './lib/client.js';
-
-export default {
-  serverCrypt: serverside,
-  frontCrypt: clientside
-}
+module.exports = {
+  serverCrypt: require('./lib/server.js'),
+  frontCrypt: require('./lib/client.js')
+};

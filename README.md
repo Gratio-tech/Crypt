@@ -10,9 +10,9 @@
 
  Import and usage:
  ```TS
- import { serverCrypt } from '@gratio/crypt';
+ import Crypt from '@gratio/crypt';
 
- const { encryptMsg } = serverCrypt;
+ const { encryptMsg } = Crypt.serverCrypt;
 
  const cipher = encryptMsg({
    message: { some_serializable: {}, or_just: 'string' }, // Any serializable type (not a function!)
