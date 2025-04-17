@@ -3,7 +3,14 @@ export type SerializableArray = Serializable[];
 export type SerializableObject = { [key: string]: Serializable };
 export type Serializable = SerializablePrimitive | SerializableArray | SerializableObject;
 
-export type encryptedData = { data: string; v: string };
+export type EncryptedData = { data: string; v: string };
 
-export declare const encryptMsg: (params: { message: Serializable; pass: string }) => encryptedData;
-export declare const decryptMsg: (params: { message: encryptedData; pass: string }) => Serializable;
+export type CryptoParams =  { message: Serializable; pass: string };
+
+export default interface Crypt {
+  serverCrypt: {
+    encryptMsg: (params: CryptoParams) => EncryptedData,
+    decryptMsg: (params: CryptoParams) => Serializable
+  },
+  frontCrypt: {}
+}
