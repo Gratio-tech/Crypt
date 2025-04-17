@@ -1,6 +1,6 @@
 {
   "name": "@gratio/crypt",
-  "version": "1.0.5",
+  "version": "1.0.6",
   "description": "A very simple package for encrypting communications between server and client.",
   "main": "index.js",
   "types": "types.d.ts",
@@ -17,5 +17,8 @@
   "bugs": {
     "url": "https://github.com/Gratio-tech/Crypt/issues"
   },
-  "homepage": "https://github.com/Gratio-tech/Crypt#readme"
+  "homepage": "https://github.com/Gratio-tech/Crypt#readme",
+  "devDependencies": {
+    "@types/node": "^22.14.1"
+  }
 }

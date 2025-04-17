@@ -10,7 +10,9 @@ export type DecryptParams = { message: CryptedData; pass: string };
 
 export interface ServerCrypt {
   encryptMsg: (params: EncryptParams) => CryptedData;
-  decryptMsg: (params: DecryptParams) => Serializable;
+  decryptMsg: (params: DecryptParams) => string;
+  unpack: (base64Key: string) => Buffer;
+  pack: (bufferKey: Buffer) => string;
 }
 
 export interface FrontCrypt {
