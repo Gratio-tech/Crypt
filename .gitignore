@@ -1,0 +1,8 @@
+/.data
+/node_modules
+/lib/forge
+
+# Pulsar-editor plugin-config to load code on server (may content passwords)
+.sync.json
+
+.editorconfig

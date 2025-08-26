@@ -1,3 +1,5 @@
+import { ApiResponse } from '@gratio/types';
+
 export type SerializablePrimitive = string | number | boolean | null;
 export type SerializableArray = Serializable[];
 export type SerializableObject = { [key: string]: Serializable };
@@ -8,6 +10,9 @@ export type CryptedData = { data: string; v: string };
 export type EncryptParams = { message: Serializable; pass: string };
 export type DecryptParams = { message: CryptedData; pass: string };
 
+// Типы для шифрованных ответов
+export type ApiResponseCrypted = ApiResponse<CryptedData>;
+
 export interface ServerCrypt {
   encryptMsg: (params: EncryptParams) => CryptedData;
   decryptMsg: (params: DecryptParams) => string;
@@ -16,7 +21,8 @@ export interface ServerCrypt {
 }
 
 export interface FrontCrypt {
-  // Методы клиентской части
+  packToBase64: (bufferKey: ArrayBuffer) => string; // Уточнить тип
+  unpackBase64: (base64: string) => ArrayBuffer; // Uint8Array?
 }
 
 /* Разбираться! Не работает в старых версиях
