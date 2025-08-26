@@ -1,4 +1,4 @@
-import { ApiResponse } from '@gratio/types';
+import { ApiResponse } from '@gratio/api';
 
 export type SerializablePrimitive = string | number | boolean | null;
 export type SerializableArray = Serializable[];
