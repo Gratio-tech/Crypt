@@ -1,4 +1,6 @@
 # Crypt
+[![npm version](https://img.shields.io/npm/v/@gratio/crypt?color=%23047dec)](https://www.npmjs.org/package/@gratio/crypt)
+
  A very simple package for encrypting communications between server and client.
 
 ## Description
