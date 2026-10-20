@@ -4,6 +4,7 @@ const { test } = require('node:test');
 const assert = require('node:assert/strict');
 
 const Crypt = require('..');
+const crypto = require('node:crypto');
 
 // base64("0123456789abcdef") — 16 bytes
 const PASS = 'MDEyMzQ1Njc4OWFiY2RlZg==';
@@ -96,5 +97,48 @@ test('server encryptMsg accepts explicit AES-CTR and stays interoperable', () =>
   assert.deepEqual(
     JSON.parse(clientCrypt.decryptMsg({ message: encrypted, pass: PASS, algorithm: 'AES-CTR' })),
     { a: 1 }
+  );
+});
+
+test('client AES-CFB interoperates with Node aes-128-cfb', () => {
+  const key = clientCrypt.generateCommonKey();
+  const iv = clientCrypt.generateIV();
+
+  // client encrypts -> Node decrypts
+  const cipher = clientCrypt.encrypt('hello CFB', key, iv, 'AES-CFB');
+  const decipher = crypto.createDecipheriv(
+    'aes-128-cfb', Buffer.from(key, 'base64'), Buffer.from(iv, 'base64'));
+  const plaintext = Buffer.concat([
+    decipher.update(Buffer.from(cipher, 'base64')),
+    decipher.final()
+  ]).toString('utf8');
+  assert.equal(plaintext, 'hello CFB');
+
+  // Node encrypts -> client decrypts
+  const cipher2 = crypto.createCipheriv(
+    'aes-128-cfb', Buffer.from(key, 'base64'), Buffer.from(iv, 'base64'));
+  const enc = Buffer.concat([
+    cipher2.update('hello CFB 2', 'utf8'),
+    cipher2.final()
+  ]).toString('base64');
+  assert.equal(clientCrypt.decrypt(enc, key, iv, 'AES-CFB'), 'hello CFB 2');
+});
+
+test('client AES-CFB round-trips arbitrary lengths (partial block)', () => {
+  const key = clientCrypt.generateCommonKey();
+  const iv = clientCrypt.generateIV();
+  for (const msg of ['a', 'hello', 'exactly sixteen!!', 'this message is longer than one full block']) {
+    const enc = clientCrypt.encrypt(msg, key, iv, 'AES-CFB');
+    assert.equal(clientCrypt.decrypt(enc, key, iv, 'AES-CFB'), msg);
+  }
+});
+
+test('server AES-CFB stays interoperable with client', () => {
+  const encrypted = serverCrypt.encryptMsg({
+    message: 'cfb from server', pass: PASS, algorithm: 'AES-CFB'
+  });
+  assert.equal(
+    clientCrypt.decryptMsg({ message: encrypted, pass: PASS, algorithm: 'AES-CFB' }),
+    'cfb from server'
   );
 });

@@ -2,12 +2,14 @@
 
 # @gratio/crypt
 
-Simple AES-128-CTR encryption for server ↔ client exchange.
+Symmetric encryption, hashing and key derivation for client ↔ server data exchange.
+One API for Node.js and browsers.
 
 - **Zero runtime dependencies**
-- **Isomorphic**: Server (Node.js `crypto`) and Client (pure JS `lib/cypher`)
-- **Dual module**: CommonJS and ESM support
-- **Subpath exports**: `@gratio/crypt/server`, `@gratio/crypt/client`, `@gratio/crypt/cypher`
+- **Isomorphic** — runs in Node.js and the browser
+- **Dual module** — CommonJS and ESM
+- **Standalone browser bundles** — `<script>`-ready IIFE and ESM builds
+- **Ciphers**: `AES-CTR`, `AES-CFB` · **Hashes**: `sha256`, `sha512`, `md5`, `hmac` · **KDF**: `pbkdf2`
 
 ## Install
 
@@ -92,6 +94,27 @@ const text = decryptMsg({ message: cipher, pass: key });
 `pbkdf2(password, salt, iterations?, keyLength?)` returns the derived key as a
 binary string; wrap it in `util.encode64` to use it as `pass`. Defaults:
 `iterations = 10000`, `keyLength = 16`.
+
+---
+
+## Algorithms
+
+**Ciphers** — the `algorithm` parameter of `encrypt` / `decrypt` / `encryptMsg` / `decryptMsg`:
+
+| Algorithm | Client | Server |
+|-----------|:------:|:------:|
+| `AES-CTR` (default; Node: `aes-128-ctr`) | ✅ | ✅ |
+| `AES-CFB` (Node: `aes-128-cfb`) | ✅ | ✅ |
+| anything else (`aes-128-cbc`, `aes-128-gcm`, ...) | ❌ | ✅ (Node only) |
+
+The client ships AES in two stream modes (CTR and CFB); only these are
+registered there. The server delegates to Node `crypto` and accepts any cipher
+Node supports, but client↔server interop is only guaranteed for `AES-CTR` and
+`AES-CFB`.
+
+**Hashes / KDF** — separate from ciphers, exposed as their own functions:
+
+`sha256`, `sha512` (+ `sha384`, `sha512/256`, `sha512/224`), `md5`, `hmac`, `pbkdf2`.
 
 ---
 
@@ -238,7 +261,7 @@ bb2.truncate(2);          // cut the tail, keep `length - 2` bytes
 The client and cypher modules include hash functions and HMAC:
 
 ```ts
-import { sha256, sha512, md5, hmac } from '@gratio/crypt/client';
+import { sha256, sha512, md5, hmac, pbkdf2 } from '@gratio/crypt/client';
 // or from '@gratio/crypt/cypher'
 
 // SHA-256
