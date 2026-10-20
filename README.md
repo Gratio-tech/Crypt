@@ -1,4 +1,5 @@
 # Crypt
+[![npm version](https://img.shields.io/npm/v/@gratio/crypt?color=%23047dec)](https://www.npmjs.org/package/@gratio/crypt)
 
 Simple AES-128-CTR encryption for server ↔ client exchange.
 
