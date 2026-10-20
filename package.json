@@ -1,13 +1,70 @@
 {
   "name": "@gratio/crypt",
-  "version": "1.0.9",
+  "version": "2.0.0",
   "description": "A very simple package for encrypting communications between server and client.",
   "main": "index.js",
+  "module": "index.mjs",
   "types": "types.d.ts",
   "type": "commonjs",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "build": "npm run build:client && npm run build:client:debug && npm run build:client:esm",
+    "build:client": "esbuild lib/client.browser.js --bundle --minify --target=es5 --format=iife --outfile=dist/gcrypt.min.js",
+    "build:client:debug": "esbuild lib/client.browser.js --bundle --target=es5 --format=iife --outfile=dist/gcrypt.js",
+    "build:client:esm": "esbuild lib/client.esm.js --bundle --minify --format=esm --outfile=dist/gcrypt.esm.js && esbuild lib/client.esm.js --bundle --minify --format=esm --outfile=dist/gcrypt.esm.mjs",
+    "prepack": "npm run build",
+    "test": "node --test"
   },
+  "browser": {
+    "./index.js": "./index.browser.js"
+  },
+  "exports": {
+    ".": {
+      "types": "./types.d.ts",
+      "browser": {
+        "import": "./index.browser.mjs",
+        "require": "./index.browser.js"
+      },
+      "import": "./index.mjs",
+      "require": "./index.js",
+      "default": "./index.js"
+    },
+    "./client": {
+      "types": "./types.d.ts",
+      "browser": {
+        "import": "./lib/client.esm.js",
+        "require": "./lib/client.browser.js"
+      },
+      "import": "./lib/client.esm.js",
+      "require": "./lib/client.js",
+      "default": "./lib/client.js"
+    },
+    "./server": {
+      "types": "./types.d.ts",
+      "require": "./lib/server.js",
+      "default": "./lib/server.js"
+    },
+    "./cypher": {
+      "types": "./types.d.ts",
+      "import": "./lib/cypher/index.js",
+      "require": "./lib/cypher/index.js",
+      "default": "./lib/cypher/index.js"
+    },
+    "./dist/*": "./dist/*",
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "index.js",
+    "index.mjs",
+    "index.browser.js",
+    "index.browser.mjs",
+    "lib/client.js",
+    "lib/client.browser.js",
+    "lib/client.esm.js",
+    "lib/server.js",
+    "lib/cypher",
+    "dist",
+    "types.d.ts"
+  ],
   "repository": {
     "type": "git",
     "url": "git+https://github.com/Gratio-tech/Crypt.git"
@@ -18,10 +75,19 @@
     "url": "https://github.com/Gratio-tech/Crypt/issues"
   },
   "homepage": "https://github.com/Gratio-tech/Crypt#readme",
+  "publishConfig": {
+    "access": "public"
+  },
   "devDependencies": {
-    "@types/node": "^22.14.1"
+    "@types/node": "^22.14.1",
+    "esbuild": "^0.24.0"
   },
   "peerDependencies": {
     "@gratio/api": "^1.0.x"
+  },
+  "peerDependenciesMeta": {
+    "@gratio/api": {
+      "optional": true
+    }
   }
 }

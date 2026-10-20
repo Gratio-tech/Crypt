@@ -1,44 +1,134 @@
 # Crypt
- A very simple package for encrypting communications between server and client.
 
-## Description
- The library has two modules - for the server and for the client, so that you can use secure encrypted data exchange not only between the API, but also with the frontend.
+Simple AES-128-CTR encryption for server ↔ client exchange.
 
-## Usage on serverside
- First of all install lib:
- ```shell
- npm i @gratio/crypt
- ```
+- **Zero runtime dependencies**
+- **Isomorphic**: Server (Node.js `crypto`) and Client (pure JS `lib/cypher`)
+- **Dual module**: CommonJS and ESM support
+- **Subpath exports**: `@gratio/crypt/server`, `@gratio/crypt/client`, `@gratio/crypt/cypher`
 
- Usage example:
- ```TS
- import Crypt from '@gratio/crypt';
+## Install
 
- const { encryptMsg, decryptMsg } = Crypt.serverCrypt;
- const pass_in_base64 = 'U0VDUkVUX1BBU1M='; // Base64 encrypted pass
+```shell
+npm i @gratio/crypt
+```
 
- const cipher = encryptMsg({
-   message: {}, // Any serializable type (not a function!) e.g. {} | 'string' | []
-   pass: pass_in_base64
- }); // Return { data, v } witch you can stringify and send as a body
+---
 
- // Any encrypted message must has an `data` and `v` fields with base64 encoded strings
- // data is encrypted data, v is an init vector
- const decryptedString = decryptMsg({
-   message: { data: 'string', v: 'string' },
-   pass: pass_in_base64
- }); // Return correct JSON-string
+## Server (Node.js)
 
- const decryptedData = JSON.parse(decryptedString); // return Initial data
- ```
+```ts
+import Crypt from '@gratio/crypt';
+const { encryptMsg, decryptMsg, generateCommonKey } = Crypt.serverCrypt;
 
- `pass_in_base64` - preferably a valid base64 string (but not strictly necessarily). \
- You can generate your own pass like this:
+// Or direct subpath import:
+// import { encryptMsg, decryptMsg, generateCommonKey } from '@gratio/crypt/server';
 
- ```TS
- import Crypt from '@gratio/crypt';
- const { pack } = Crypt.serverCrypt;
- const your_pass = 'SECRET_PASS';
+const pass = generateCommonKey(); // 16-byte base64 key
 
- console.log(pack(your_pass)); // 'U0VDUkVUX1BBU1M='
- ```
+const cipher = encryptMsg({ message: { a: 1 }, pass });
+// => { data: string, v: string } — both base64
+
+const json = decryptMsg({ message: cipher, pass }); // string
+const data = JSON.parse(json); // { a: 1 }
+```
+
+- `pass` must decode to a 16-byte AES key (e.g. generated via `generateCommonKey()`).
+- `message` may be any JSON-serializable value (objects are automatically JSON-serialized).
+- `decryptMsg` returns a string — parse it with `JSON.parse` if you encrypted an object.
+
+---
+
+## Client (Browser & Node.js)
+
+Same AES-128-CTR format as the server, without Node `crypto`.
+
+```ts
+import Crypt from '@gratio/crypt';
+const { encryptMsg, decryptMsg, generateIV } = Crypt.clientCrypt;
+
+// Or direct subpath import:
+// import { encryptMsg, decryptMsg, generateIV } from '@gratio/crypt/client';
+
+const pass = 'MDEyMzQ1Njc4OWFiY2RlZg=='; // 16-byte base64 key
+
+const cipher = encryptMsg({ message: 'Hello', pass }); // { data, v }
+const text = decryptMsg({ message: cipher, pass }); // 'Hello'
+```
+
+### Low-level Client API
+
+```ts
+import { encrypt, decrypt, generateIV } from '@gratio/crypt/client';
+
+const iv = generateIV(); // 16-byte base64 IV
+const ciphertext = encrypt('Hello world', pass, iv); // base64
+const plaintext = decrypt(ciphertext, pass, iv); // 'Hello world'
+```
+
+> `frontCrypt` is an alias of `clientCrypt`.
+
+---
+
+## Subpath Exports
+
+| Import Path | Description | Environment |
+|-------------|-------------|-------------|
+| `@gratio/crypt` | Root export (`serverCrypt`, `clientCrypt`, `frontCrypt`, `cypher`) | Node & Browser |
+| `@gratio/crypt/server` | Server encryption methods | Node.js only |
+| `@gratio/crypt/client` | Client encryption methods & hashes | Node & Browser |
+| `@gratio/crypt/cypher` | Low-level primitives (`aes`, `sha*`, `md5`, `hmac`, `ByteBuffer`, `baseN`) | Node & Browser |
+| `@gratio/crypt/dist/*` | Pre-built standalone bundles | Browser |
+
+---
+
+## Hashes / HMAC
+
+The client and cypher modules include hash functions and HMAC:
+
+```ts
+import { sha256, sha512, md5, hmac } from '@gratio/crypt/client';
+// or from '@gratio/crypt/cypher'
+
+// SHA-256
+const hash256 = sha256.create().update('hello').digest().toHex();
+
+// SHA-512 & SHA-384
+const hash512 = sha512.create().update('hello').digest().toHex();
+const hash384 = sha512.sha384.create().update('hello').digest().toHex();
+
+// MD5
+const hashMd5 = md5.create().update('hello').digest().toHex();
+
+// HMAC
+const mac = hmac.create();
+mac.start('sha256', 'secret-key');
+mac.update('hello');
+const macHex = mac.digest().toHex();
+```
+
+---
+
+## Standalone Bundle (Browsers / `<script>`)
+
+Pre-built bundles in `dist/`:
+
+- `dist/gcrypt.min.js` — minified IIFE (ES5), exposing `window.gCypher` / `window.GratioCypher`.
+- `dist/gcrypt.js` — unminified debug IIFE.
+- `dist/gcrypt.esm.js` / `dist/gcrypt.esm.mjs` — standalone minified ESM bundle.
+
+```html
+<script src="node_modules/@gratio/crypt/dist/gcrypt.min.js"></script>
+<script>
+  // Global object: window.gCypher (or window.GratioCypher)
+  const pass = 'MDEyMzQ1Njc4OWFiY2RlZg==';
+  const iv = gCypher.generateIV();
+  const cipher = gCypher.encrypt('Hello', pass, iv);
+  const text = gCypher.decrypt(cipher, pass, iv);
+</script>
+```
+
+To rebuild bundles:
+```shell
+npm run build
+```

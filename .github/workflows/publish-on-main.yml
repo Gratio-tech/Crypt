@@ -1,0 +1,87 @@
+name: Test, build and publish (on push to main)
+
+on:
+  push:
+    branches:
+      - main
+
+concurrency:
+  group: publish-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  test-and-publish:
+    name: Test, build and publish
+    runs-on: ubuntu-latest
+    # В Trusted Publisher должен совпадать Environment = production.
+    environment: production
+    permissions:
+      contents: read
+      id-token: write
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          registry-url: 'https://registry.npmjs.org'
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Run tests
+        run: npm test
+
+      - name: Build
+        run: npm run build
+
+      - name: Ensure package is not private
+        run: |
+          node -e "const pkg = require('./package.json'); if (pkg.private) { console.error('package.json.private is true — aborting publish'); process.exit(1); }"
+
+      - name: Decide whether version is new
+        id: release
+        run: |
+          PACKAGE_NAME="$(node -p "require('./package.json').name")"
+          REQUESTED="$(node -p "require('./package.json').version")"
+          NPM_LATEST="$(npm view "$PACKAGE_NAME" dist-tags.latest 2>/dev/null || true)"
+
+          echo "package:  $PACKAGE_NAME"
+          echo "requested: $REQUESTED"
+          echo "npm latest: ${NPM_LATEST:-<none>}"
+
+          SHOULD_PUBLISH="$(REQUESTED="$REQUESTED" NPM_LATEST="$NPM_LATEST" node <<'NODE'
+          const parseStableVersion = value => {
+            const [core] = String(value).split('-');
+            const parts = core.split('.').map(Number);
+            if (parts.length !== 3 || parts.some(part => !Number.isInteger(part) || part < 0)) {
+              throw new Error(`Invalid semver version: ${value}`);
+            }
+            return parts;
+          };
+          const compare = (left, right) => {
+            for (let index = 0; index < 3; index += 1) {
+              if (left[index] !== right[index]) return left[index] - right[index];
+            }
+            return 0;
+          };
+          const requested = parseStableVersion(process.env.REQUESTED);
+          const latest = process.env.NPM_LATEST ? parseStableVersion(process.env.NPM_LATEST) : null;
+          const shouldPublish = !latest || compare(requested, latest) > 0;
+          process.stdout.write(shouldPublish ? 'true' : 'false');
+          NODE
+          )"
+
+          echo "should_publish=$SHOULD_PUBLISH" >> "$GITHUB_OUTPUT"
+          if [ "$SHOULD_PUBLISH" = "true" ]; then
+            echo "Publishing $PACKAGE_NAME@$REQUESTED"
+          else
+            echo "Skip publish: $PACKAGE_NAME@$REQUESTED is not newer than npm latest (${NPM_LATEST:-none})"
+          fi
+
+      - name: Publish to npm
+        if: steps.release.outputs.should_publish == 'true'
+        run: npm publish --access public --tag latest --provenance
