@@ -10,8 +10,8 @@ export type Serializable =
 
 export type CryptedData = { data: string; v: string };
 
-export type EncryptParams = { message: Serializable; pass: string };
-export type DecryptParams = { message: CryptedData; pass: string };
+export type EncryptParams = { message: Serializable; pass: string; algorithm?: string };
+export type DecryptParams = { message: CryptedData; pass: string; algorithm?: string };
 
 // Типы для шифрованных ответов
 export type ApiResponseCrypted = ApiResponse<CryptedData>;
@@ -112,6 +112,7 @@ export interface Cypher {
   sha512: Sha512;
   md5: { create(): MessageDigest };
   hmac: { create(): Hmac };
+  pbkdf2: (password: string, salt: string, iterations?: number, keyLength?: number) => string;
   prng: { create(plugin: any): any };
   random: any;
   cipher: any;
@@ -130,8 +131,8 @@ export interface ServerCrypt {
 export interface ClientCrypt {
   generateCommonKey: () => string;
   generateIV: () => string;
-  encrypt: (plaintext: string, key: string, iv: string) => string;
-  decrypt: (ciphertext: string, key: string, iv: string) => string;
+  encrypt: (plaintext: string, key: string, iv: string, algorithm?: string) => string;
+  decrypt: (ciphertext: string, key: string, iv: string, algorithm?: string) => string;
   encryptMsg: (params: EncryptParams) => CryptedData;
   decryptMsg: (params: DecryptParams) => string;
   packToBase64: (bufferKey: ArrayBuffer | Uint8Array) => string;
@@ -140,6 +141,7 @@ export interface ClientCrypt {
   sha512: Cypher['sha512'];
   md5: Cypher['md5'];
   hmac: Cypher['hmac'];
+  pbkdf2: Cypher['pbkdf2'];
   util: Cypher['util'];
   random: Cypher['random'];
   cipher: Cypher['cipher'];

@@ -65,3 +65,36 @@ test('empty and falsy messages survive the round-trip', () => {
     assert.equal(decrypted, expected);
   }
 });
+
+test('client encryptMsg/decryptMsg accept explicit AES-CTR', () => {
+  const encrypted = clientCrypt.encryptMsg({
+    message: 'hello', pass: PASS, algorithm: 'AES-CTR'
+  });
+  assert.equal(
+    clientCrypt.decryptMsg({ message: encrypted, pass: PASS, algorithm: 'AES-CTR' }),
+    'hello'
+  );
+});
+
+test('client low-level encrypt/decrypt accept explicit algorithm', () => {
+  const iv = clientCrypt.generateIV();
+  const ciphertext = clientCrypt.encrypt('hello', PASS, iv, 'AES-CTR');
+  assert.equal(clientCrypt.decrypt(ciphertext, PASS, iv, 'AES-CTR'), 'hello');
+});
+
+test('client rejects an unsupported algorithm', () => {
+  assert.throws(
+    () => clientCrypt.encryptMsg({ message: 'hello', pass: PASS, algorithm: 'AES-CBC' }),
+    /Unsupported algorithm/
+  );
+});
+
+test('server encryptMsg accepts explicit AES-CTR and stays interoperable', () => {
+  const encrypted = serverCrypt.encryptMsg({
+    message: { a: 1 }, pass: PASS, algorithm: 'AES-CTR'
+  });
+  assert.deepEqual(
+    JSON.parse(clientCrypt.decryptMsg({ message: encrypted, pass: PASS, algorithm: 'AES-CTR' })),
+    { a: 1 }
+  );
+});
