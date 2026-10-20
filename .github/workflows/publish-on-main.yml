@@ -32,11 +32,11 @@ jobs:
       - name: Install dependencies
         run: npm install
 
-      - name: Run tests
-        run: npm test
-
       - name: Build
         run: npm run build
+
+      - name: Run tests
+        run: npm test
 
       - name: Ensure package is not private
         run: |

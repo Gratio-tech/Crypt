@@ -3,6 +3,8 @@
 const { test } = require('node:test');
 const assert = require('node:assert/strict');
 const crypto = require('node:crypto');
+const fs = require('node:fs');
+const path = require('node:path');
 
 const PASS = 'MDEyMzQ1Njc4OWFiY2RlZg==';
 
@@ -62,7 +64,12 @@ test('Browser CJS entry (index.browser.js) has .default and throws on serverCryp
   assert.equal(mod.clientCrypt.decrypt(cipher, PASS, iv), 'browser-cjs');
 });
 
-test('Bundled client ESM (dist/gcrypt.esm.mjs)', async () => {
+test('Bundled client ESM (dist/gcrypt.esm.mjs)', async (t) => {
+  const bundlePath = path.resolve(__dirname, '../dist/gcrypt.esm.mjs');
+  if (!fs.existsSync(bundlePath)) {
+    t.skip('dist/gcrypt.esm.mjs not found; run npm run build first');
+    return;
+  }
   const mod = await import('../dist/gcrypt.esm.mjs');
   assert.ok(mod.default);
   assert.equal(typeof mod.encrypt, 'function');

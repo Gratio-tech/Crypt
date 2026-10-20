@@ -11,6 +11,7 @@
     "build:client": "esbuild lib/client.browser.js --bundle --minify --target=es5 --format=iife --outfile=dist/gcrypt.min.js",
     "build:client:debug": "esbuild lib/client.browser.js --bundle --target=es5 --format=iife --outfile=dist/gcrypt.js",
     "build:client:esm": "esbuild lib/client.esm.js --bundle --minify --format=esm --outfile=dist/gcrypt.esm.js && esbuild lib/client.esm.js --bundle --minify --format=esm --outfile=dist/gcrypt.esm.mjs",
+    "pretest": "npm run build",
     "prepack": "npm run build",
     "test": "node --test"
   },
